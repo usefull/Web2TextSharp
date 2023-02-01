@@ -72,6 +72,9 @@ namespace Web2TextSharp.HtmlProcessing
                     element.Children!.Add(CreateLeafElement(CDOMElementType.LineBreak, childSrc, element));
                 else if (childSrc.Name == "#text")
                 {
+                    if (string.IsNullOrWhiteSpace(childSrc.InnerText))
+                        continue;
+
                     var str = childSrc.InnerText.Replace(" ", string.Empty).Replace("\n", string.Empty).Replace("\r", string.Empty);
                     element.Children!.Add(CreateLeafElement(str == string.Empty ? CDOMElementType.LineBreak : CDOMElementType.Text, childSrc, element));
                 }
@@ -103,6 +106,6 @@ namespace Web2TextSharp.HtmlProcessing
             Text = htmlSrcNode.InnerText
         };
 
-        private static string[] _tagsToIgnore = { "area", "base", "col", "colgroup", "embed", "hr", "iframe", "img", "input", "link", "meta", "source", "track", "wbr" };
+        private static readonly string[] _tagsToIgnore = { "area", "base", "col", "colgroup", "embed", "hr", "iframe", "img", "input", "link", "meta", "source", "track", "wbr" };
     }
 }
