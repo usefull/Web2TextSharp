@@ -1,0 +1,47 @@
+﻿using HtmlAgilityPack;
+
+namespace Web2TextSharp.HtmlProcessing.Entities
+{
+    /// <summary>
+    /// CDOM element.
+    /// </summary>
+    public class CDOMElement
+    {
+        /// <summary>
+        /// Element type.
+        /// </summary>
+        public CDOMElementType Type { get; set; }
+
+        /// <summary>
+        /// Reference to the parent element.
+        /// </summary>
+        public CDOMElement? Parent { get; set; }
+
+        /// <summary>
+        /// Collection of child elements.
+        /// </summary>
+        public ICollection<CDOMElement>? Children { get; set; }
+
+        /// <summary>
+        /// Element name
+        /// </summary>
+        /// <remarks>The same as the tag name of the corresponding HTML-element.</remarks>
+        public string? Name { get; set; }
+
+        /// <summary>
+        /// Reference to the source HTML-element.
+        /// </summary>
+        public HtmlNode? HtmlSrcNode { get; set; }
+
+        /// <summary>
+        /// Element text.
+        /// </summary>
+        /// <remarks>The same as the HTML-element inner text. Only valid for the text elements (<see cref="CDOMElementType.Text"/>).</remarks>
+        public string? Text { get; set; }
+
+        /// <summary>
+        /// Element feature vector.
+        /// </summary>
+        public float[]? Features { get; set; }
+    }
+}
