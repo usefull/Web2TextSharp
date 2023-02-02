@@ -8,8 +8,8 @@ namespace Web2TextSharp.HtmlProcessing.Test
         {
             using (var fstream = new FileStream("1.html", FileMode.Open))
             {
-                var parser = new HtmlParser();
-                var root = parser.Parse(fstream);
+                var root = HtmlParser.Parse(fstream, "//body");
+                var en = root.EnumerateTextElements().ToList();
                 ;
                 //parser.Parse();
             }

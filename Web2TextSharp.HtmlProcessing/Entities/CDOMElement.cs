@@ -43,5 +43,23 @@ namespace Web2TextSharp.HtmlProcessing.Entities
         /// Element feature vector.
         /// </summary>
         public float[]? Features { get; set; }
+
+        /// <summary>
+        /// All child text elements enumeration.
+        /// </summary>
+        /// <returns>Text elements enumeration.</returns>
+        public IEnumerable<CDOMElement> EnumerateTextElements()
+        {
+            if (Type == CDOMElementType.Text)
+                yield return this;
+
+            if (Children != null)
+                foreach (var child in Children)
+                {
+                    var children = child.EnumerateTextElements();
+                    foreach (var e in children)
+                        yield return e;
+                }
+        }
     }
 }

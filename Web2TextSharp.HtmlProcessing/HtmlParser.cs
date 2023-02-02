@@ -1,42 +1,87 @@
 ﻿using HtmlAgilityPack;
 using System.Text;
+using System.Web;
 using Web2TextSharp.HtmlProcessing.Entities;
 using Web2TextSharp.HtmlProcessing.Exceptions;
 using Web2TextSharp.HtmlProcessing.Resources;
 
 namespace Web2TextSharp.HtmlProcessing
 {
-    public class HtmlParser
+    /// <summary>
+    /// Functionality for parsing HTML in CDOM.
+    /// </summary>
+    public static class HtmlParser
     {
-        public CDOMElement Parse(Stream stream, string? rootXPath = null)
+        /// <summary>
+        /// Parses HTML to CDOM.
+        /// </summary>
+        /// <param name="stream">Stream represents source HTML.</param>
+        /// <param name="rootXPath">XPath selector for root HTML element. If null the document root is used.</param>
+        /// <returns>Root CDOM element.</returns>
+        /// <exception cref="NodeNotFoundException">In case the root element is not found.</exception>
+        /// <exception cref="MoreThanOneRootException">In case multiple root elements are found.</exception>
+        public static CDOMElement Parse(Stream stream, string? rootXPath = null)
         {
             var doc = new HtmlDocument();
             doc.Load(stream);
             return Parse(doc, rootXPath);
         }
 
-        public CDOMElement Parse(Stream stream, Encoding encoding, string? rootXPath = null)
+        /// <summary>
+        /// Parses HTML to CDOM.
+        /// </summary>
+        /// <param name="stream">Stream represents source HTML.</param>
+        /// <param name="encoding">Source document encoding.</param>
+        /// <param name="rootXPath">XPath selector for root HTML element. If null the document root is used.</param>
+        /// <returns>Root CDOM element.</returns>
+        /// <exception cref="NodeNotFoundException">In case the root element is not found.</exception>
+        /// <exception cref="MoreThanOneRootException">In case multiple root elements are found.</exception>
+        public static CDOMElement Parse(Stream stream, Encoding encoding, string? rootXPath = null)
         {
             var doc = new HtmlDocument();
             doc.Load(stream, encoding);
             return Parse(doc, rootXPath);
         }
 
-        public CDOMElement Parse(string html, string? rootXPath = null)
+        /// <summary>
+        /// Parses HTML to CDOM.
+        /// </summary>
+        /// <param name="html">String represents source HTML.</param>
+        /// <param name="rootXPath">XPath selector for root HTML element. If null the document root is used.</param>
+        /// <returns>Root CDOM element.</returns>
+        /// <exception cref="NodeNotFoundException">In case the root element is not found.</exception>
+        /// <exception cref="MoreThanOneRootException">In case multiple root elements are found.</exception>
+        public static CDOMElement Parse(string html, string? rootXPath = null)
         {
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
             return Parse(doc, rootXPath);
         }
 
-        public CDOMElement Parse(TextReader html, string? rootXPath = null)
+        /// <summary>
+        /// Parses HTML to CDOM.
+        /// </summary>
+        /// <param name="html">Text reader object represents source HTML.</param>
+        /// <param name="rootXPath">XPath selector for root HTML element. If null the document root is used.</param>
+        /// <returns>Root CDOM element.</returns>
+        /// <exception cref="NodeNotFoundException">In case the root element is not found.</exception>
+        /// <exception cref="MoreThanOneRootException">In case multiple root elements are found.</exception>
+        public static CDOMElement Parse(TextReader html, string? rootXPath = null)
         {
             var doc = new HtmlDocument();
             doc.Load(html);
             return Parse(doc, rootXPath);
         }
 
-        private CDOMElement Parse(HtmlDocument doc, string? rootXPath)
+        /// <summary>
+        /// Parses HTML to CDOM.
+        /// </summary>
+        /// <param name="doc">HtmlAgilityPack document represents source HTML.</param>
+        /// <param name="rootXPath">XPath selector for root HTML element. If null the document root is used.</param>
+        /// <returns>Root CDOM element.</returns>
+        /// <exception cref="NodeNotFoundException">In case the root element is not found.</exception>
+        /// <exception cref="MoreThanOneRootException">In case multiple root elements are found.</exception>
+        private static CDOMElement Parse(HtmlDocument doc, string? rootXPath)
         {
             HtmlNode rootSrc;
             if (string.IsNullOrWhiteSpace(rootXPath))
@@ -58,10 +103,14 @@ namespace Web2TextSharp.HtmlProcessing
 
             ExpandElement(root);
 
-            return root;
+            return CollapseIfSingleChild(root);
         }
 
-        private void ExpandElement(CDOMElement element)
+        /// <summary>
+        /// Expands all child nodes into a CDOM structure.
+        /// </summary>
+        /// <param name="element">Initial element.</param>
+        private static void ExpandElement(CDOMElement element)
         {
             foreach (var childSrc in element.HtmlSrcNode!.ChildNodes)
             {
@@ -69,25 +118,62 @@ namespace Web2TextSharp.HtmlProcessing
                     continue;
 
                 if (childSrc.Name == "br")
-                    element.Children!.Add(CreateLeafElement(CDOMElementType.LineBreak, childSrc, element));
+                    element.Children?.Add(CreateTextElement("\r\n", childSrc, element));
                 else if (childSrc.Name == "#text")
                 {
-                    if (string.IsNullOrWhiteSpace(childSrc.InnerText))
-                        continue;
-
-                    var str = childSrc.InnerText.Replace(" ", string.Empty).Replace("\n", string.Empty).Replace("\r", string.Empty);
-                    element.Children!.Add(CreateLeafElement(str == string.Empty ? CDOMElementType.LineBreak : CDOMElementType.Text, childSrc, element));
+                    var nodeText = HttpUtility.HtmlDecode(childSrc.InnerText);
+                    if (!string.IsNullOrWhiteSpace(nodeText))
+                        element.Children?.Add(CreateTextElement(nodeText, childSrc, element));
                 }
                 else
                 {
                     var nextNode = CreateNodeElement(childSrc, element);
                     ExpandElement(nextNode);
-                    if (nextNode.Children!.Any())
-                        element.Children!.Add(nextNode);
+                    if (nextNode.Children?.Any() == true)
+                        element.Children?.Add(nextNode);
                 }
             }
         }
 
+        /// <summary>
+        /// Collapses all child nodes that have only one child.
+        /// </summary>
+        /// <param name="e">Initial element.</param>
+        /// <returns>Result element.</returns>
+        private static CDOMElement CollapseIfSingleChild(CDOMElement e)
+        {
+            var element = e;
+
+            while ((element.Children?.Count ?? 0) == 1)
+            {
+                var parent = element.Parent;
+                var child = element.Children?.FirstOrDefault();
+
+                if (parent != null)
+                {
+                    parent?.Children?.Remove(element);
+                    element.Parent = null;
+                }
+
+                element.Children?.Remove(child!);
+                parent?.Children?.Add(child!);
+                child!.Parent = parent;
+                child.Name = $"{element.Name}/{child.Name}";
+
+                element = child;
+            }
+
+            element.Children?.ToList()?.ForEach(child => CollapseIfSingleChild(child));
+
+            return element;
+        }
+
+        /// <summary>
+        /// Creates node element.
+        /// </summary>
+        /// <param name="htmlSrcNode">Reference to the source HTML-element.</param>
+        /// <param name="parent">Reference to the parent element.</param>
+        /// <returns>Result element.</returns>
         private static CDOMElement CreateNodeElement(HtmlNode htmlSrcNode, CDOMElement? parent = null) => new()
         {
             Type = CDOMElementType.Node,
@@ -97,15 +183,25 @@ namespace Web2TextSharp.HtmlProcessing
             Children = new List<CDOMElement>()
         };
 
-        private static CDOMElement CreateLeafElement(CDOMElementType type, HtmlNode htmlSrcNode, CDOMElement parent) => new()
+        /// <summary>
+        /// Creates text element.
+        /// </summary>
+        /// <param name="text">Element text.</param>
+        /// <param name="htmlSrcNode">Reference to the source HTML-element.</param>
+        /// <param name="parent">Reference to the parent element.</param>
+        /// <returns>Result element.</returns>
+        private static CDOMElement CreateTextElement(string text, HtmlNode htmlSrcNode, CDOMElement parent) => new()
         {
-            Type = type,
+            Type = CDOMElementType.Text,
             Name = htmlSrcNode.Name,
             HtmlSrcNode = htmlSrcNode,
             Parent = parent,
-            Text = htmlSrcNode.InnerText
+            Text = text
         };
 
+        /// <summary>
+        /// Tags to be ignored during parsing.
+        /// </summary>
         private static readonly string[] _tagsToIgnore = { "area", "base", "col", "colgroup", "embed", "hr", "iframe", "img", "input", "link", "meta", "source", "track", "wbr" };
     }
 }

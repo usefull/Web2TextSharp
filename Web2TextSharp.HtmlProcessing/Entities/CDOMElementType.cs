@@ -11,11 +11,6 @@
         Node,
 
         /// <summary>
-        /// An element represents an line break.
-        /// </summary>
-        LineBreak,
-
-        /// <summary>
         /// An element represents text.
         /// </summary>
         Text
