@@ -28,7 +28,11 @@ namespace Web2TextSharp.HtmlProcessing.Test
     <p><span><b>inside b</b>string</span></p>
 </div>
             ");
-            var en = root.EnumerateTextElements().ToList();
+            var textCollapsedElement = root.EnumerateTextElements().FirstOrDefault(i => i.Name == "a/span/#text" && i.Text == "anchor");
+            Assert.IsNotNull(textCollapsedElement);
+
+            var deepCollapsedElement = root.EnumerateTextElements().FirstOrDefault(i => i.Name == "b/#text" && i.Text == "inside b");
+            Assert.AreEqual("div/p/span", deepCollapsedElement?.Parent?.Name);
         }
     }
 }
