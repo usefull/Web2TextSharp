@@ -1,7 +1,7 @@
 namespace Web2TextSharp.HtmlProcessing.Test
 {
     [TestClass]
-    public class UnitTest1
+    public class HtmlParserTest
     {
         [TestMethod]
         public void TestMethod1()
@@ -14,6 +14,21 @@ namespace Web2TextSharp.HtmlProcessing.Test
                 //parser.Parse();
             }
 
+        }
+
+        [TestMethod]
+        public void CollapseTest()
+        {
+            var root = HtmlParser.Parse(@"
+<div>
+    <a><span>anchor</span></a>
+    some text
+</div>
+<div>
+    <p><span><b>inside b</b>string</span></p>
+</div>
+            ");
+            var en = root.EnumerateTextElements().ToList();
         }
     }
 }
