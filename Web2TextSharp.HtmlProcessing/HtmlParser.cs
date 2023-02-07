@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using Web2TextSharp.HtmlProcessing.Entities;
 using Web2TextSharp.HtmlProcessing.Exceptions;
@@ -10,7 +11,7 @@ namespace Web2TextSharp.HtmlProcessing
     /// <summary>
     /// Functionality for parsing HTML in CDOM.
     /// </summary>
-    public static class HtmlParser
+    public static partial class HtmlParser
     {
         /// <summary>
         /// Parses HTML to CDOM.
@@ -121,8 +122,8 @@ namespace Web2TextSharp.HtmlProcessing
                     element.Children?.Add(CreateTextElement("\r\n", childSrc, element));
                 else if (childSrc.Name == "#text")
                 {
-                    var nodeText = HttpUtility.HtmlDecode(childSrc.InnerText);
-                    if (!string.IsNullOrWhiteSpace(nodeText))
+                    var nodeText = _regexLikeLinebreak().Replace(HttpUtility.HtmlDecode(childSrc.InnerText), "\r\n");
+                    if (_regexSpaces().Replace(nodeText, string.Empty) != string.Empty)
                         element.Children?.Add(CreateTextElement(nodeText, childSrc, element));
                 }
                 else
@@ -203,5 +204,17 @@ namespace Web2TextSharp.HtmlProcessing
         /// Tags to be ignored during parsing.
         /// </summary>
         private static readonly string[] _tagsToIgnore = { "area", "base", "col", "colgroup", "embed", "hr", "iframe", "img", "input", "link", "meta", "source", "track", "wbr" };
+
+        /// <summary>
+        /// Regexp for various invisible or space symbols.
+        /// </summary>
+        [GeneratedRegex("[\\p{Z}\\p{Zs}\\p{Cf}\\p{Co}\\p{Cs}\\p{Cn}]", RegexOptions.Compiled)]
+        private static partial Regex _regexSpaces();
+
+        /// <summary>
+        /// Regexp for replacing various line separators with "\r\n".
+        /// </summary>
+        [GeneratedRegex("[\\p{Zl}\\p{Zp}]", RegexOptions.Compiled)]
+        private static partial Regex _regexLikeLinebreak();
     }
 }
