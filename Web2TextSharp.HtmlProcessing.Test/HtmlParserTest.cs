@@ -3,36 +3,62 @@ namespace Web2TextSharp.HtmlProcessing.Test
     [TestClass]
     public class HtmlParserTest
     {
+        /// <summary>
+        /// Tests the preservation of the order of child elements after parsing.
+        /// </summary>
         [TestMethod]
-        public void TestMethod1()
+        public void ChildrenOrderPreservationTest()
         {
-            using (var fstream = new FileStream("1.html", FileMode.Open))
-            {
-                var root = HtmlParser.Parse(fstream, "//body");
-                var en = root.EnumerateTextElements().ToList();
-                ;
-                //parser.Parse();
-            }
+            var root = HtmlParser.Parse("<div>1<a>2</a>3<span>4</span></div>");
 
+            var expected = Enumerable.Range(1, 4).Select(i => i.ToString());
+            var actual = root.Children!.Select(i => i.Text);
+
+            Assert.IsTrue(expected.SequenceEqual(actual));
+
+            Assert.IsFalse(actual.SequenceEqual(Enumerable.Reverse(expected)));
         }
 
+        /// <summary>
+        /// Tests the collapsing single child nodes.
+        /// </summary>
         [TestMethod]
         public void CollapseTest()
         {
-            var root = HtmlParser.Parse(@"
-<div>
-    <a><span>anchor</span></a>
-    some text
-</div>
-<div>
-    <p><span><b>inside b</b>string</span></p>
-</div>
-            ");
-            var textCollapsedElement = root.EnumerateTextElements().FirstOrDefault(i => i.Name == "a/span/#text" && i.Text == "anchor");
-            Assert.IsNotNull(textCollapsedElement);
+            var root = HtmlParser.Parse("<div><p><span><a>1</a></span><span><a>2</a></span></p><div><div><p><span><a>3</a><a>4</a></span></p></div></div></div>");
 
-            var deepCollapsedElement = root.EnumerateTextElements().FirstOrDefault(i => i.Name == "b/#text" && i.Text == "inside b");
-            Assert.AreEqual("div/p/span", deepCollapsedElement?.Parent?.Name);
+            Assert.AreEqual("div/div/p/span", root.Children!.Skip(1).First().Name);
+
+            Assert.AreEqual("span/a/#text", root.EnumerateTextElements().First(n => n.Text == "1").Name);
+            Assert.AreEqual("span/a/#text", root.EnumerateTextElements().First(n => n.Text == "2").Name);
+            Assert.AreEqual("a/#text", root.EnumerateTextElements().First(n => n.Text == "3").Name);
+            Assert.AreEqual("a/#text", root.EnumerateTextElements().First(n => n.Text == "4").Name);
+        }
+
+        /// <summary>
+        /// Tests the preservation of elements that has linebreaks after parsing.
+        /// </summary>
+        [TestMethod]
+        public void LinebreakElementsPreservationTest()
+        {
+            var root = HtmlParser.Parse(@"<div>
+<span>1</span>     
+<span>2</span>   
+   <span>3</span></div>");
+
+            Assert.IsTrue(root.Children!.First().Text!.Contains("\r\n"));
+            Assert.IsTrue(root.Children!.Skip(2).First().Text!.Contains("\r\n"));
+            Assert.IsTrue(root.Children!.Skip(4).First().Text!.Contains("\r\n"));
+        }
+
+        /// <summary>
+        /// Tests the ignoring empty elements.
+        /// </summary>
+        [TestMethod]
+        public void IgnoringEmptyElementsTest()
+        {
+            var root = HtmlParser.Parse(@"<div>    <span>1</span><span>   </span><span><a></a></span></div>");
+            Assert.IsTrue(root.Children == null || !root.Children.Any());
         }
     }
 }

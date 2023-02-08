@@ -148,17 +148,17 @@ namespace Web2TextSharp.HtmlProcessing
             while ((element.Children?.Count ?? 0) == 1)
             {
                 var parent = element.Parent;
-                var child = element.Children?.FirstOrDefault();
+                var child = element.Children!.FirstOrDefault();
 
-                if (parent != null)
-                {
-                    parent?.Children?.Remove(element);
-                    element.Parent = null;
-                }
-
-                element.Children?.Remove(child!);
-                parent?.Children?.Add(child!);
+                element.Parent = null;
+                element.Children!.Remove(child!);
                 child!.Parent = parent;
+
+                if (parent != null)                   
+                    parent.Children = parent.Children == null
+                        ? new List<CDOMElement> { child }
+                        : parent.Children.Select(n => ReferenceEquals(n, element) ? child : n).ToList();
+
                 child.Name = $"{element.Name}/{child.Name}";
 
                 element = child;
@@ -168,6 +168,33 @@ namespace Web2TextSharp.HtmlProcessing
 
             return element;
         }
+        //private static CDOMElement CollapseIfSingleChild(CDOMElement e)
+        //{
+        //    var element = e;
+
+        //    while ((element.Children?.Count ?? 0) == 1)
+        //    {
+        //        var parent = element.Parent;
+        //        var child = element.Children?.FirstOrDefault();
+
+        //        if (parent != null)
+        //        {
+        //            parent?.Children?.Remove(element);
+        //            element.Parent = null;
+        //        }
+
+        //        element.Children?.Remove(child!);
+        //        parent?.Children?.Add(child!);
+        //        child!.Parent = parent;
+        //        child.Name = $"{element.Name}/{child.Name}";
+
+        //        element = child;
+        //    }
+
+        //    element.Children?.ToList()?.ForEach(child => CollapseIfSingleChild(child));
+
+        //    return element;
+        //}
 
         /// <summary>
         /// Creates node element.
