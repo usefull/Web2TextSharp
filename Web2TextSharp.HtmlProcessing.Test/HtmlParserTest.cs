@@ -71,7 +71,7 @@ namespace Web2TextSharp.HtmlProcessing.Test
 
             var node = root.EnumerateTextElements().First(i => i.Text == "1");
             Assert.AreEqual("div.c1>p.c2>span.c3>#text", node.NameWithClasses);
-            Assert.AreEqual("#document>div.c4>div.c1>p.c2>span.c3>#text", node.GetClassPath());
+            Assert.AreEqual("#document>div.c4>div.c1>p.c2>span.c3>#text", node.ClassPath);
 
             node = root.EnumerateTextElements().First(i => i.Text == "2");
             Assert.AreEqual("div.aaa.rrr.www>#text", node.NameWithClasses);

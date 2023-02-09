@@ -120,6 +120,12 @@
   <data name="MoreThanOneRootFound" xml:space="preserve">
     <value>More than one root candidate node found.</value>
   </data>
+  <data name="NonSignificantElementOfPair" xml:space="preserve">
+    <value>Elements of pair (CDOMPair) can not be non-significant (non-featurized).</value>
+  </data>
+  <data name="NullElementOfPair" xml:space="preserve">
+    <value>Elements of pair (CDOMPair) can not be null.</value>
+  </data>
   <data name="XPathNotFound" xml:space="preserve">
     <value>The node was not found at the specified XPath.</value>
   </data>

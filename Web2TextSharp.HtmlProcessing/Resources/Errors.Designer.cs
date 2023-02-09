@@ -70,6 +70,24 @@ namespace Web2TextSharp.HtmlProcessing.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Elements of pair (CDOMPair) can not be non-significant (non-featurized)..
+        /// </summary>
+        internal static string NonSignificantElementOfPair {
+            get {
+                return ResourceManager.GetString("NonSignificantElementOfPair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Elements of pair (CDOMPair) can not be null..
+        /// </summary>
+        internal static string NullElementOfPair {
+            get {
+                return ResourceManager.GetString("NullElementOfPair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на The node was not found at the specified XPath..
         /// </summary>
         internal static string XPathNotFound {

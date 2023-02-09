@@ -69,11 +69,19 @@ namespace Web2TextSharp.HtmlProcessing.Entities
         }
 
         /// <summary>
-        /// Gets the element classpath up to the root element.
+        /// Element classpath up to the root element.
         /// </summary>
-        /// <returns>Element classpath.</returns>
-        public string GetClassPath() => Parent == null
-            ? NameWithClasses ?? string.Empty
-            : $"{Parent.GetClassPath()}>{NameWithClasses}";
+        public string ClassPath
+        {
+            get
+            {
+                _classPath ??= Parent == null
+                       ? NameWithClasses ?? string.Empty
+                       : $"{Parent.ClassPath}>{NameWithClasses}";
+                return _classPath;
+            }
+        }
+
+        private string? _classPath;
     }
 }
