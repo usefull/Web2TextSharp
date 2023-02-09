@@ -160,6 +160,7 @@ namespace Web2TextSharp.HtmlProcessing
                         : parent.Children.Select(n => ReferenceEquals(n, element) ? child : n).ToList();
 
                 child.Name = $"{element.Name}/{child.Name}";
+                child.NameWithClasses = $"{element.NameWithClasses}>{child.NameWithClasses}";
 
                 element = child;
             }
@@ -168,33 +169,6 @@ namespace Web2TextSharp.HtmlProcessing
 
             return element;
         }
-        //private static CDOMElement CollapseIfSingleChild(CDOMElement e)
-        //{
-        //    var element = e;
-
-        //    while ((element.Children?.Count ?? 0) == 1)
-        //    {
-        //        var parent = element.Parent;
-        //        var child = element.Children?.FirstOrDefault();
-
-        //        if (parent != null)
-        //        {
-        //            parent?.Children?.Remove(element);
-        //            element.Parent = null;
-        //        }
-
-        //        element.Children?.Remove(child!);
-        //        parent?.Children?.Add(child!);
-        //        child!.Parent = parent;
-        //        child.Name = $"{element.Name}/{child.Name}";
-
-        //        element = child;
-        //    }
-
-        //    element.Children?.ToList()?.ForEach(child => CollapseIfSingleChild(child));
-
-        //    return element;
-        //}
 
         /// <summary>
         /// Creates node element.
@@ -208,7 +182,8 @@ namespace Web2TextSharp.HtmlProcessing
             Name = htmlSrcNode.Name,
             HtmlSrcNode = htmlSrcNode,
             Parent = parent,
-            Children = new List<CDOMElement>()
+            Children = new List<CDOMElement>(),
+            NameWithClasses = GetNameWithClasses(htmlSrcNode)
         };
 
         /// <summary>
@@ -224,8 +199,18 @@ namespace Web2TextSharp.HtmlProcessing
             Name = htmlSrcNode.Name,
             HtmlSrcNode = htmlSrcNode,
             Parent = parent,
-            Text = text
+            Text = text,
+            NameWithClasses = GetNameWithClasses(htmlSrcNode)
         };
+
+        /// <summary>
+        /// Creates element name with classes.
+        /// </summary>
+        /// <param name="htmlSrcNode">Reference to the source HTML-element.</param>
+        /// <returns>Element name with classes.</returns>
+        private static string GetNameWithClasses(HtmlNode htmlSrcNode) =>
+            $"{htmlSrcNode.Name}{string.Join(null, htmlSrcNode.GetClasses().OrderBy(c => c).Select(c => $".{c}"))}";
+
 
         /// <summary>
         /// Tags to be ignored during parsing.

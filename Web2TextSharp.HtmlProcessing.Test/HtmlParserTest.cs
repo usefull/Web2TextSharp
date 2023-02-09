@@ -60,5 +60,21 @@ namespace Web2TextSharp.HtmlProcessing.Test
             var root = HtmlParser.Parse(@"<div>    <span>1</span><span>   </span><span><a></a></span></div>");
             Assert.IsTrue(root.Children == null || !root.Children.Any());
         }
+
+        /// <summary>
+        /// Tests classpath.
+        /// </summary>
+        [TestMethod]
+        public void ClassPathTest()
+        {
+            var root = HtmlParser.Parse(@"<div class=""c4""><div class=""c1""><p class=""c2""><span class=""c3"">1</span></p></div><div class=""www rrr aaa"">2</div></div>");
+
+            var node = root.EnumerateTextElements().First(i => i.Text == "1");
+            Assert.AreEqual("div.c1>p.c2>span.c3>#text", node.NameWithClasses);
+            Assert.AreEqual("#document>div.c4>div.c1>p.c2>span.c3>#text", node.GetClassPath());
+
+            node = root.EnumerateTextElements().First(i => i.Text == "2");
+            Assert.AreEqual("div.aaa.rrr.www>#text", node.NameWithClasses);
+        }
     }
 }

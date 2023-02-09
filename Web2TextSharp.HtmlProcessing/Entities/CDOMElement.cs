@@ -29,6 +29,12 @@ namespace Web2TextSharp.HtmlProcessing.Entities
         public string? Name { get; set; }
 
         /// <summary>
+        /// Element name with classes if presented.
+        /// </summary>
+        /// <remarks>The same as the tag name of the corresponding HTML-element.</remarks>
+        public string? NameWithClasses { get; set; }
+
+        /// <summary>
         /// Reference to the source HTML-element.
         /// </summary>
         public HtmlNode? HtmlSrcNode { get; set; }
@@ -61,5 +67,13 @@ namespace Web2TextSharp.HtmlProcessing.Entities
                         yield return e;
                 }
         }
+
+        /// <summary>
+        /// Gets the element classpath up to the root element.
+        /// </summary>
+        /// <returns>Element classpath.</returns>
+        public string GetClassPath() => Parent == null
+            ? NameWithClasses ?? string.Empty
+            : $"{Parent.GetClassPath()}>{NameWithClasses}";
     }
 }
